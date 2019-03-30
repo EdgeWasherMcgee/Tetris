@@ -1,0 +1,25 @@
+#Tetris blocks for my Classic Tetris clone
+name: Tetris
+size: 32
+files:
+  - name: tetrisblocks.png
+    tilesPerRow: 6
+    tiles:
+    - name: BlueSquare
+    - name: LightBlue
+    - name: Blue
+    - name: PurpleSquare
+    - name: Red
+    - name: Purple
+    - name: GreenSquare
+    - name: Yellow
+    - name: Green
+    - name: CeriseSquare
+    - name: Lime
+    - name: Cerise
+    - name: PinkSquare
+    - name: LightPink
+    - name: Pink
+    - name: OrangeSquare
+    - name: LightOrange
+    - name: Orange

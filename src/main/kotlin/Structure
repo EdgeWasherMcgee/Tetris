@@ -1,0 +1,6 @@
+
+
+Structure:
+    Class that handles tetris board and physics, allowing inputs to be made. (May be it's own file)
+    Class that handles inputs from the player
+    Class that handles drawing the board, this class will be separate depending on gamemode
