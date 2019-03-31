@@ -1,35 +1,19 @@
 import org.hexworks.zircon.api.*
-import org.hexworks.zircon.api.graphics.TileGraphics
-import org.hexworks.zircon.api.Positions
-import org.hexworks.zircon.api.grid.TileGrid
-import org.hexworks.zircon.api.screen.Screen
-import org.hexworks.zircon.api.Screens
-import org.hexworks.zircon.api.builder.game.GameAreaBuilder
-import org.hexworks.zircon.api.color.ANSITileColor
-import org.hexworks.zircon.api.component.*
-import org.hexworks.zircon.api.data.*
-import org.hexworks.zircon.api.data.base.BlockBase
-import org.hexworks.zircon.api.data.impl.Position3D
-import org.hexworks.zircon.api.data.impl.Size3D
-import org.hexworks.zircon.api.extensions.onComponentEvent
+import org.hexworks.zircon.api.component.ComponentAlignment
+import org.hexworks.zircon.api.component.Panel
+import org.hexworks.zircon.api.component.TextBox
+import org.hexworks.zircon.api.data.GraphicTile
+import org.hexworks.zircon.api.data.Position
 import org.hexworks.zircon.api.extensions.onKeyboardEvent
-import org.hexworks.zircon.api.extensions.onMouseEvent
-import org.hexworks.zircon.api.game.GameArea
-import org.hexworks.zircon.api.resource.BuiltInCP437TilesetResource
 import org.hexworks.zircon.api.graphics.BoxType
 import org.hexworks.zircon.api.graphics.Layer
 import org.hexworks.zircon.api.mvc.base.BaseView
-import org.hexworks.zircon.api.uievent.*
-import org.hexworks.zircon.api.uievent.Processed
-import org.hexworks.zircon.api.uievent.KeyboardEventType
 import org.hexworks.zircon.api.resource.GraphicalTilesetResource
-import java.awt.TextArea
-import java.awt.Window
-import java.awt.event.MouseEvent
+import org.hexworks.zircon.api.uievent.KeyCode
+import org.hexworks.zircon.api.uievent.KeyboardEventType
+import org.hexworks.zircon.api.uievent.Processed
+import org.hexworks.zircon.api.uievent.UIEventPhase
 import kotlin.concurrent.thread
-import kotlin.math.log
-import kotlinx.coroutines.*
-import kotlin.math.floor
 
 //import TetrisCore
 
@@ -166,8 +150,11 @@ class GameView : BaseView() {
             screen.onKeyboardEvent(KeyboardEventType.KEY_PRESSED) {
 
                     event, phase ->
-                if (phase == UIEventPhase.CAPTURE) {
+                if (phase == UIEventPhase.TARGET) {
                     when (event.code) {
+                        KeyCode.DOWN -> {
+                            down = 1; println("DOWN pressed")
+                        }
                         KeyCode.LEFT -> {
                             move = -1; println("LEFT pressed")
                         }
@@ -180,9 +167,6 @@ class GameView : BaseView() {
                         KeyCode.KEY_S -> {
                             flip = 1; println("KEY_S pressed")
                         }
-                        KeyCode.DOWN -> {
-                            down = 1
-                        }
                         else -> {
                         }
                     }
@@ -190,8 +174,11 @@ class GameView : BaseView() {
                 Processed
             }
 
-            screen.onKeyboardEvent(KeyboardEventType.KEY_RELEASED) { event, phase ->
+            screen.onKeyboardEvent(KeyboardEventType.KEY_RELEASED) { event, _ ->
                 when (event.code) {
+                    KeyCode.DOWN -> {
+                        down = 0; println("DOWN released")
+                    }
                     KeyCode.LEFT -> {
                         move = 0; println("LEFT released")
                     }
@@ -204,9 +191,6 @@ class GameView : BaseView() {
                     KeyCode.KEY_S -> {
                         flip = 0; println("KEY_S released")
                     }
-                    KeyCode.DOWN -> {
-                        down = 0
-                    }
                     else -> {
                     }
                 }
@@ -214,15 +198,10 @@ class GameView : BaseView() {
             }
 
             while (true) {
-                tC.newTick(flip, move, down = down)
+                tC.newTick(flip, move, down = down, freq = 6)
                 paintBoard(tetrisLayer)
-                if (move > 0) {
-                    move += 1
-                }
-                if (move < 0) {
-                    move += -1
-                }
-
+                move += if (move > 0) 1 else if (move < 0) -1 else 0
+                flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
                 Thread.sleep(1000 / 60)
             }
         }

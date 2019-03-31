@@ -1,5 +1,4 @@
-import kotlin.random.Random
-import kotlin.math.*
+import kotlin.math.abs
 
 object Blocks {
     val pJ = arrayOf(
@@ -78,14 +77,16 @@ class TetrisCore {
             }
             coll = false
         } else {
-            if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + flip) % 4))) {
-                input = true
-                rot = abs((rot + flip) % 4)
+            if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
+                if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + flip) % 4))) {
+                    input = true
+                    rot = abs((rot + flip) % 4)
+                }
             }
-            if ((move == 0) or ((move > 16) and ((move % 6) == 0))) {
+            if ((abs(move) == 1) or ((abs(move) > 16) and ((abs(move) % 6) == 0))) {
                 if (!blCollission(blCords[0], blCords[1] + move)) {
                     input = true
-                    blCords[0] = if (move > 0) 1 else -1
+                    blCords[1] += if (move > 0) 1 else if (move < 0) -1 else 0
                 }
             }
             if ((curFrame % (freq / (down * 2 + 1)) == 0)) {
@@ -110,8 +111,8 @@ class TetrisCore {
         return blShape[rot]
     }
 
-    fun getNextShape(): Array<IntArray> {
-        return Blocks.blocks[nextShape][0]
+    fun getNextShape(): Int {
+        return nextShape
     }
 
     private fun solidify() {
@@ -124,16 +125,16 @@ class TetrisCore {
         var yCords = IntArray(4) { -1 }
         var whatLine = 0
         var full: Boolean
-        for (y in 0 until 20) {
+        for (yCord in 0 until 20) {
             full = true
             for (x in 0 until 10) {
-                if (board[y][x] == 0) {
+                if (board[yCord][x] == 0) {
                     full = false
                     break
                 }
             }
             if (full) {
-                yCords[whatLine] = y
+                yCords[whatLine] = yCord
                 whatLine++
             }
         }
