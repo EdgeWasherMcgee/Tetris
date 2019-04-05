@@ -1,3 +1,4 @@
+
 import org.hexworks.zircon.api.*
 import org.hexworks.zircon.api.component.ComponentAlignment
 import org.hexworks.zircon.api.component.Panel
@@ -13,6 +14,7 @@ import org.hexworks.zircon.api.uievent.KeyCode
 import org.hexworks.zircon.api.uievent.KeyboardEventType
 import org.hexworks.zircon.api.uievent.Processed
 import org.hexworks.zircon.api.uievent.UIEventPhase
+import java.lang.Integer.max
 import kotlin.concurrent.thread
 
 //import TetrisCore
@@ -89,13 +91,14 @@ class StartView : BaseView() {
 }
 
 
-class GameView : BaseView() {
+class GameView (startingLevel: Int = 9): BaseView() {
+
 
     override val theme = ColorThemes.arc()
     private val graphicalTileset = GraphicalTilesetResource(
         width = 32,
         height = 32,
-        path = "/home/co/IdeaProjects/Tetris2/src/main/resources/graphic_tilsets/tetris_32x32.zip"
+        path = javaClass.getResource("/graphic_tilesets/tetris_32x32.zip").path
     )
 
     private val graphicalTiles = Array<GraphicTile>(18) { i ->
@@ -105,10 +108,13 @@ class GameView : BaseView() {
             .buildGraphicTile()
     }
 
-    var tC = TetrisCore()
+    var core = TetrisCore()
+    val startLevel = startingLevel
 
 
     override fun onDock() {
+
+        var score = 0
 
         var down = 0
 
@@ -124,7 +130,7 @@ class GameView : BaseView() {
             .build()
 
         val board: Panel = Components.panel()
-            .withSize(Sizes.create(22, 42))
+            .withSize(Sizes.create(22, 41))
             .withAlignmentWithin(screen, ComponentAlignment.CENTER)
             .wrapWithBox()
             .withTitle("TETRIS")
@@ -139,33 +145,56 @@ class GameView : BaseView() {
             .withOffset(Positions.create(10, 5))
             .build()
 
+        val scorePanel: Panel = Components.panel()
+            .withSize(Sizes.create(7 * 2, 7 * 2))
+            .withBoxType(BoxType.SINGLE)
+            .withTitle("SCORE")
+            .wrapWithBox()
+            .withAlignmentAround(board, ComponentAlignment.TOP_RIGHT)
+            .build()
+
+        val myScore = Components.label()
+            .withText("000000")
+            .withPosition(41, 10)
+            .withSize(7 * 2,2 * 2)
+            .wrapWithBox()
+            .build()
+
+        screen.addComponent(myScore)
         screen.pushLayer(tetrisLayer)
+        screen.addComponent(scorePanel)
         screen.addComponent(board)
         screen.addComponent(statPanel)
 
         thread {
 
-            var clear = false
+            var gravity = arrayOf(48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2)
+            var level = startLevel
+            var lines = 0
+            var linesAfterProgress = 0
+
+//            val keyStates = mutableMapOf<KeyCode, KeyboardEventType>()
 
             screen.onKeyboardEvent(KeyboardEventType.KEY_PRESSED) {
 
                     event, phase ->
                 if (phase == UIEventPhase.TARGET) {
+//                    keyStates[event.code] = KeyboardEventType.KEY_PRESSED
                     when (event.code) {
                         KeyCode.DOWN -> {
-                            down = 1; println("DOWN pressed")
+                            down = if (down == 0) 1 else down; println("DOWN pressed")
                         }
                         KeyCode.LEFT -> {
-                            move = -1; println("LEFT pressed")
+                            move = if (move == 0) -1 else move; println("LEFT pressed")
                         }
                         KeyCode.RIGHT -> {
-                            move = 1; println("RIGHT pressed")
+                            move = if (move == 0) 1 else move; println("RIGHT pressed")
                         }
                         KeyCode.KEY_A -> {
-                            flip = -1; println("KEY_A pressed")
+                            flip = if (flip == 0) -1 else flip; println("KEY_A pressed")
                         }
                         KeyCode.KEY_S -> {
-                            flip = 1; println("KEY_S pressed")
+                            flip = if (flip == 0) 1 else flip; println("KEY_S pressed")
                         }
                         else -> {
                         }
@@ -182,12 +211,14 @@ class GameView : BaseView() {
                     KeyCode.LEFT -> {
                         move = 0; println("LEFT released")
                     }
+
                     KeyCode.RIGHT -> {
                         move = 0; println("RIGHT released")
                     }
                     KeyCode.KEY_A -> {
                         flip = 0; println("KEY_A released")
                     }
+
                     KeyCode.KEY_S -> {
                         flip = 0; println("KEY_S released")
                     }
@@ -198,7 +229,35 @@ class GameView : BaseView() {
             }
 
             while (true) {
-                tC.newTick(flip, move, down = down, freq = 6)
+                myScore.text = score.toString()
+                core.newTick(flip, move, down = down, freq = gravity[level])
+                if (core.locked) {
+                    break
+                }
+                lines += core.getClearedLines()
+                linesAfterProgress += core.getClearedLines()
+                when (core.getClearedLines()) {
+                    1 -> score += 40 * (level + 1)
+                    2 -> score += 100 * (level + 1)
+                    3 -> score += 300 * (level + 1)
+                    4 -> score += 1200 * (level + 1)
+                    else -> {
+                    }
+                }
+                if (startLevel <= level) {
+                    if ((lines > (startLevel * 10 + 10)) or (lines > (max(100, (startLevel * 10 - 10))))) {
+                        level++
+                        linesAfterProgress = 0
+                    }
+                } else {
+                    if (linesAfterProgress >= 10) {
+                        level++
+                        linesAfterProgress = 0
+                    }
+                }
+
+
+
                 paintBoard(tetrisLayer)
                 move += if (move > 0) 1 else if (move < 0) -1 else 0
                 flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
@@ -208,19 +267,23 @@ class GameView : BaseView() {
     }
 
 
-    fun paintBoard(tL: Layer) {
+    fun paintBoard(tetrisLayer: Layer) {
         for (y in 0 until 20) {
             for (x in 0 until 10) {
-                if (tC.getCord(x, y) > 0) {
-                    tL.setTileAt(Positions.create(x, y), graphicalTiles[0])
+                if (core.getCord(x, y) > 0) {
+                    tetrisLayer.setTileAt(Positions.create(x, y), graphicalTiles[0])
                 } else {
-                    tL.setTileAt(Position.create(x, y), Tiles.empty())
+                    tetrisLayer.setTileAt(Position.create(x, y), Tiles.empty())
                 }
             }
         }
-        for (i in tC.getShape()) {
-            tL.setTileAt(Positions.create(tC.blCords[1] + i[1], tC.blCords[0] + i[0]), graphicalTiles[1])
+        for (i in core.getShape()) {
+            tetrisLayer.setTileAt(Positions.create(core.blCords[1] + i[1], core.blCords[0] + i[0]), graphicalTiles[1])
         }
+    }
+
+    fun updateScore(score: Int, box: TextBox) {
+
     }
 }
 

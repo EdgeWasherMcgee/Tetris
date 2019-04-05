@@ -52,25 +52,34 @@ object Blocks {
 
 class TetrisCore {
 
-    var clearedLines = IntArray(4)
-    var clearedLine: Boolean = false
     var blCords = intArrayOf(0, 5)
+    var locked = false
+    private var clearedLines: Int = 0
+    private var clearedyCords = IntArray(4)
     private var coll = false
     private var board = Array(20) { IntArray(10) }
     private var input = false
     private var rot = 0
     private var curFrame = 0
-    private var blShape = Blocks.blocks[newBlock()]
+    private var curBlockNum: Int = newBlock()
+    private var blShape = Blocks.blocks[curBlockNum]
     private var nextShape = newBlock()
 
     fun newTick(flip: Int, move: Int, down: Int = 0, freq: Int = 10) {
         input = false
-        this.clearedLine = false
+        val sMove = if (move > 0) 1 else if (move < 0) -1 else 0
+        val sFlip = if (flip > 0) 1 else if (flip < 0) -1 else 0
+        this.clearedLines = 0
         var yCords = IntArray(4)
         if (coll) {
             solidify()
             blShape = Blocks.blocks[nextShape]
+            curBlockNum = nextShape
             nextShape = newBlock()
+            if (lockOut()) {
+                locked = true
+                return
+            }
             yCords = checkForFullLines()
             if (efflen(yCords) > 0) {
                 clearLine(yCords)
@@ -78,18 +87,18 @@ class TetrisCore {
             coll = false
         } else {
             if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
-                if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + flip) % 4))) {
+                if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + sFlip) % 4))) {
                     input = true
-                    rot = abs((rot + flip) % 4)
+                    rot = abs((rot + sFlip) % 4)
                 }
             }
             if ((abs(move) == 1) or ((abs(move) > 16) and ((abs(move) % 6) == 0))) {
-                if (!blCollission(blCords[0], blCords[1] + move)) {
+                if (!blCollission(blCords[0], blCords[1] + sMove)) {
                     input = true
-                    blCords[1] += if (move > 0) 1 else if (move < 0) -1 else 0
+                    blCords[1] += sMove
                 }
             }
-            if ((curFrame % (freq / (down * 2 + 1)) == 0)) {
+            if ((curFrame % (freq / (down + 1)) == 0)) {
                 if (!blCollission(blCords[0] + 1, blCords[1], true)) {
                     blCords[0] += 1
                 }
@@ -113,6 +122,18 @@ class TetrisCore {
 
     fun getNextShape(): Int {
         return nextShape
+    }
+
+    fun getCurShapeNum() : Int {
+        return curBlockNum
+    }
+
+    fun getClearedLines() : Int {
+        return clearedLines
+    }
+
+    fun getClearedyCords() : IntArray {
+        return clearedyCords
     }
 
     private fun solidify() {
@@ -151,8 +172,10 @@ class TetrisCore {
     private fun clearLine(yCords: IntArray) { //I want to move all the lines from the first Y-cord upwards, and not copy the remove lines
 
         var offset = 1
+        clearedLines = efflen(yCords)
+        clearedyCords = yCords.copyOf()
 
-        for (line in yCords[efflen(yCords) - 1] downTo (0 + efflen(yCords))) {
+        for (line in yCords[clearedLines - 1] downTo (0 + clearedLines)) {
             while (true) {
                 if ((line - offset) in yCords) {
                     offset++
@@ -163,13 +186,14 @@ class TetrisCore {
             copyLine(line - offset, line)
         }
 
-        for (line in 0 until efflen(yCords)) {
+        for (line in 0 until clearedLines) {
             board[line] = IntArray(10) { 0 }
         }
 
     }
 
     private fun blCollission(ycord: Int, xcord: Int, record: Boolean = false, nRot: Int = rot): Boolean {
+
         for (s in blShape[nRot]) {
             if (((ycord + s[0] < 0) or (ycord + s[0] > 19) or (xcord + s[1] < 0) or (xcord + s[1] > 9))) {
                 if (record) {
@@ -180,6 +204,15 @@ class TetrisCore {
                 if (record) {
                     coll = true
                 }
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun lockOut() : Boolean {
+        for (block in blShape[0]) {
+            if (blCollission(blCords[0] + block[0], blCords[1] + block[1])) {
                 return true
             }
         }
