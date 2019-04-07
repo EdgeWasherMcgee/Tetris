@@ -134,7 +134,6 @@ class GameView (startingLevel: Int = 9): BaseView() {
             .withAlignmentWithin(screen, ComponentAlignment.CENTER)
             .wrapWithBox()
             .withTitle("TETRIS")
-            .wrapWithShadow()
             .withBoxType(BoxType.SINGLE)
             .build()
 
@@ -145,31 +144,74 @@ class GameView (startingLevel: Int = 9): BaseView() {
             .withOffset(Positions.create(10, 5))
             .build()
 
+        val nextLayer: Layer = Layers.newBuilder()
+            .withTileset(graphicalTileset)
+            .withSize(Sizes.create(4, 4))
+            .withOffset(Positions.create(21, 11))
+            .build()
+
+        val linesPanel: Panel = Components.panel()
+            .withSize(22, 5)
+            .wrapWithBox()
+            .withTitle("LINES")
+            .withBoxType(BoxType.SINGLE)
+            .withAlignmentAround(board, ComponentAlignment.TOP_CENTER)
+            .build()
+
         val scorePanel: Panel = Components.panel()
-            .withSize(Sizes.create(7 * 2, 7 * 2))
+            .withSize(Sizes.create(10, 7))
             .withBoxType(BoxType.SINGLE)
             .withTitle("SCORE")
             .wrapWithBox()
             .withAlignmentAround(board, ComponentAlignment.TOP_RIGHT)
             .build()
 
-        val myScore = Components.label()
-            .withText("000000")
-            .withPosition(41, 10)
-            .withSize(7 * 2,2 * 2)
+        val levelPanel: Panel = Components.panel()
+            .withSize(Sizes.create(10, 5))
+            .withBoxType(BoxType.SINGLE)
+            .withTitle("LEVEL")
             .wrapWithBox()
+            .withAlignmentAround(scorePanel, ComponentAlignment.BOTTOM_CENTER)
             .build()
 
-        screen.addComponent(myScore)
-        screen.pushLayer(tetrisLayer)
+        val nextBlockPanel: Panel = Components.panel()
+            .withSize(10, 10)
+            .withBoxType(BoxType.SINGLE)
+            .wrapWithBox()
+            .withAlignmentAround(levelPanel, ComponentAlignment.BOTTOM_CENTER)
+            .build()
+
+        val myScore = Components.label()
+            .withText("000000")
+            .withAlignmentWithin(scorePanel, ComponentAlignment.RIGHT_CENTER)
+            .build()
+
+        val myLevel = Components.label()
+            .withText("000000")
+            .withAlignmentWithin(levelPanel, ComponentAlignment.RIGHT_CENTER)
+            .build()
+
+        val myLines = Components.label()
+            .withText("000000")
+            .withAlignmentWithin(linesPanel, ComponentAlignment.CENTER)
+            .build()
+
+        scorePanel.addComponent(myScore)
+        levelPanel.addComponent(myLevel)
+        linesPanel.addComponent(myLines)
+        screen.addComponent(nextBlockPanel)
+        screen.addComponent(linesPanel)
+        screen.addComponent(levelPanel)
         screen.addComponent(scorePanel)
         screen.addComponent(board)
         screen.addComponent(statPanel)
+        screen.pushLayer(tetrisLayer)
+        screen.pushLayer(nextLayer)
 
         thread {
 
-            var gravity = arrayOf(48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2)
-            var level = startLevel
+            val gravity = arrayOf(48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2)
+            var level = startLevel + 0
             var lines = 0
             var linesAfterProgress = 0
 
@@ -230,6 +272,9 @@ class GameView (startingLevel: Int = 9): BaseView() {
 
             while (true) {
                 myScore.text = score.toString()
+                myLevel.text = level.toString()
+                myLines.text = lines.toString()
+
                 core.newTick(flip, move, down = down, freq = gravity[level])
                 if (core.locked) {
                     break
@@ -256,9 +301,8 @@ class GameView (startingLevel: Int = 9): BaseView() {
                     }
                 }
 
-
-
                 paintBoard(tetrisLayer)
+                placeNext(nextLayer)
                 move += if (move > 0) 1 else if (move < 0) -1 else 0
                 flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
                 Thread.sleep(1000 / 60)
@@ -271,14 +315,28 @@ class GameView (startingLevel: Int = 9): BaseView() {
         for (y in 0 until 20) {
             for (x in 0 until 10) {
                 if (core.getCord(x, y) > 0) {
-                    tetrisLayer.setTileAt(Positions.create(x, y), graphicalTiles[0])
+                    tetrisLayer.setTileAt(Positions.create(x, y), graphicalTiles[core.getCord(x, y)])
                 } else {
                     tetrisLayer.setTileAt(Position.create(x, y), Tiles.empty())
                 }
             }
         }
         for (i in core.getShape()) {
-            tetrisLayer.setTileAt(Positions.create(core.blCords[1] + i[1], core.blCords[0] + i[0]), graphicalTiles[1])
+            tetrisLayer.setTileAt(Positions.create(core.blCords[1] + i[1], core.blCords[0] + i[0]), graphicalTiles[core.getCurBlockNum() + 1])
+        }
+    }
+
+    fun placeNext(tetrisLayer: Layer) {
+        val block0 = arrayOf(2, 2)
+
+        for (y in 0 until 5) {
+            for (x in 0 until 5) {
+                tetrisLayer.setTileAt(Positions.create(x, y), Tiles.empty())
+            }
+        }
+
+        for (bl in Blocks.blocks[core.getNextShape()][0]) {
+            tetrisLayer.setTileAt(Positions.create(block0[0] + bl[1], block0[1] + bl[0]), graphicalTiles[core.getNextShape() + 1])
         }
     }
 

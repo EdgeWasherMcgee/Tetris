@@ -56,7 +56,7 @@ class TetrisCore {
     var locked = false
     private var clearedLines: Int = 0
     private var clearedyCords = IntArray(4)
-    private var coll = false
+    private var coll = 0
     private var board = Array(20) { IntArray(10) }
     private var input = false
     private var rot = 0
@@ -71,21 +71,7 @@ class TetrisCore {
         val sFlip = if (flip > 0) 1 else if (flip < 0) -1 else 0
         this.clearedLines = 0
         var yCords = IntArray(4)
-        if (coll) {
-            solidify()
-            blShape = Blocks.blocks[nextShape]
-            curBlockNum = nextShape
-            nextShape = newBlock()
-            if (lockOut()) {
-                locked = true
-                return
-            }
-            yCords = checkForFullLines()
-            if (efflen(yCords) > 0) {
-                clearLine(yCords)
-            }
-            coll = false
-        } else {
+        if (coll < 8) {
             if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
                 if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + sFlip) % 4))) {
                     input = true
@@ -98,12 +84,29 @@ class TetrisCore {
                     blCords[1] += sMove
                 }
             }
-            if ((curFrame % (freq / (down + 1)) == 0)) {
-                if (!blCollission(blCords[0] + 1, blCords[1], true)) {
+            if (!blCollission(blCords[0] + 1, blCords[1])) {
+                if ((curFrame % (freq / (down + 1)) == 0)) {
                     blCords[0] += 1
                 }
+                coll = 0
             }
+        } else {
+            solidify()
+            blShape = Blocks.blocks[nextShape]
+            curBlockNum = nextShape
+            nextShape = newBlock()
+            if (lockOut()) {
+                locked = true
+                return
+            }
+            yCords = checkForFullLines()
+            if (efflen(yCords) > 0) {
+                clearLine(yCords)
+            }
+            coll = 0
         }
+
+        coll += 1
         curFrame = (curFrame + 1) % 216000
 
     }
@@ -124,21 +127,21 @@ class TetrisCore {
         return nextShape
     }
 
-    fun getCurShapeNum() : Int {
+    fun getCurBlockNum(): Int {
         return curBlockNum
     }
 
-    fun getClearedLines() : Int {
+    fun getClearedLines(): Int {
         return clearedLines
     }
 
-    fun getClearedyCords() : IntArray {
+    fun getClearedyCords(): IntArray {
         return clearedyCords
     }
 
     private fun solidify() {
         for (bl in blShape[rot]) {
-            board[(bl[0] + blCords[0])][bl[1] + blCords[1]] = 1
+            board[(bl[0] + blCords[0])][bl[1] + blCords[1]] = curBlockNum + 1
         }
     }
 
@@ -192,25 +195,19 @@ class TetrisCore {
 
     }
 
-    private fun blCollission(ycord: Int, xcord: Int, record: Boolean = false, nRot: Int = rot): Boolean {
+    private fun blCollission(ycord: Int, xcord: Int, nRot: Int = rot): Boolean {
 
         for (s in blShape[nRot]) {
             if (((ycord + s[0] < 0) or (ycord + s[0] > 19) or (xcord + s[1] < 0) or (xcord + s[1] > 9))) {
-                if (record) {
-                    coll = true
-                }
                 return true
             } else if ((board[ycord + s[0]][xcord + s[1]] > 0)) {
-                if (record) {
-                    coll = true
-                }
                 return true
             }
         }
         return false
     }
 
-    private fun lockOut() : Boolean {
+    private fun lockOut(): Boolean {
         for (block in blShape[0]) {
             if (blCollission(blCords[0] + block[0], blCords[1] + block[1])) {
                 return true
