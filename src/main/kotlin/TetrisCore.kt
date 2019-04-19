@@ -1,69 +1,96 @@
 import kotlin.math.abs
 
-object Blocks {
-    val pJ = arrayOf(
-        intArrayOf(0, -1, 0, 0, 0, 1, 1, 1).roughen(2),
-        intArrayOf(-1, 0, -1, 1, 0, 0, 1, 0).roughen(2),
-        intArrayOf(-1, -1, 0, -1, 0, 0, 0, 1).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 1, 0, 1, -1).roughen(2)
-    )
-    val pL = arrayOf(
-        intArrayOf(0, -1, 0, 0, 0, 1, 1, -1).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 1, 0, 1, 1).roughen(2),
-        intArrayOf(0, -1, 0, 0, 0, 1, -1, 1).roughen(2),
-        intArrayOf(-1, -1, -1, 0, 0, 0, 1, 0).roughen(2)
-    )
-    val pZ = arrayOf(
-        intArrayOf(0, -1, 0, 0, 1, 0, 1, 1).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 0, -1, 1, -1).roughen(2),
-        intArrayOf(0, -1, 0, 0, 1, 0, 1, 1).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 0, -1, 1, -1).roughen(2)
-    )
-    val pS = arrayOf(
-        intArrayOf(0, 0, 0, 1, 1, -1, 1, 0).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 0, 1, 1, 1).roughen(2),
-        intArrayOf(0, 0, 0, 1, 1, -1, 1, 0).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 0, 1, 1, 1).roughen(2)
-    )
-    val pT = arrayOf(
-        intArrayOf(0, -1, 0, 0, 0, 1, 1, 0).roughen(2),
-        intArrayOf(-1, 0, 0, 0, 0, 1, 1, 0).roughen(2),
-        intArrayOf(-1, 0, 0, -1, 0, 0, 0, 1).roughen(2),
-        intArrayOf(-1, 0, 0, -1, 0, 0, 1, 0).roughen(2)
-    )
-    val pO = arrayOf(
-        intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
-        intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
-        intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
-        intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2)
-    )
-    val pI = arrayOf(
-        intArrayOf(0, -2, 0, -1, 0, 0, 0, 1).roughen(2),
-        intArrayOf(-2, 0, -1, 0, 0, 0, 1, 0).roughen(2),
-        intArrayOf(0, -2, 0, -1, 0, 0, 0, 1).roughen(2),
-        intArrayOf(-2, 0, -1, 0, 0, 0, 1, 0).roughen(2)
-    )
-    val blocks = arrayOf(pJ, pL, pZ, pS, pT, pO, pI)
+class BlockController(inCords: Array<Int> = arrayOf(0, 5)) {
 
-    fun IntArray.roughen(x: Int): Array<IntArray> {
-        return Array(this.size / x) { z: Int -> IntArray(x) { i: Int -> this[i + z * x] } }
+    var orientation = 0
+    var cords: Array<Int> = inCords
+    var nextShapeId = (0 until 7).random()
+    var shapeId = (0 until 7).random()
+    var nextShape = blocks[nextShapeId]
+    var shape = blocks[shapeId]
+
+    var block = Array(4) { outer ->
+        Array(2) { inner ->
+            shape[this.orientation][outer][inner] + this.cords[inner]
+        }
+    }
+
+    fun new() {
+        this.orientation = 0
+        this.shapeId = this.nextShapeId
+        this.shape = blocks[this.shapeId]
+        this.nextShapeId = (0 until 7).random()
+        this.nextShape = blocks[this.nextShapeId]
+        this.block = Array(4) { outer ->
+            Array(2) { inner ->
+                this.shape[this.orientation][outer][inner] + this.cords[inner]
+            }
+        }
+    }
+
+    companion object Blocks {
+        val pJ = arrayOf(
+            intArrayOf(0, -1, 0, 0, 0, 1, 1, 1).roughen(2),
+            intArrayOf(-1, 0, -1, 1, 0, 0, 1, 0).roughen(2),
+            intArrayOf(-1, -1, 0, -1, 0, 0, 0, 1).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 1, 0, 1, -1).roughen(2)
+        )
+        val pL = arrayOf(
+            intArrayOf(0, -1, 0, 0, 0, 1, 1, -1).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 1, 0, 1, 1).roughen(2),
+            intArrayOf(0, -1, 0, 0, 0, 1, -1, 1).roughen(2),
+            intArrayOf(-1, -1, -1, 0, 0, 0, 1, 0).roughen(2)
+        )
+        val pZ = arrayOf(
+            intArrayOf(0, -1, 0, 0, 1, 0, 1, 1).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 0, -1, 1, -1).roughen(2),
+            intArrayOf(0, -1, 0, 0, 1, 0, 1, 1).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 0, -1, 1, -1).roughen(2)
+        )
+        val pS = arrayOf(
+            intArrayOf(0, 0, 0, 1, 1, -1, 1, 0).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 0, 1, 1, 1).roughen(2),
+            intArrayOf(0, 0, 0, 1, 1, -1, 1, 0).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 0, 1, 1, 1).roughen(2)
+        )
+        val pT = arrayOf(
+            intArrayOf(0, -1, 0, 0, 0, 1, 1, 0).roughen(2),
+            intArrayOf(-1, 0, 0, 0, 0, 1, 1, 0).roughen(2),
+            intArrayOf(-1, 0, 0, -1, 0, 0, 0, 1).roughen(2),
+            intArrayOf(-1, 0, 0, -1, 0, 0, 1, 0).roughen(2)
+        )
+        val pO = arrayOf(
+            intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
+            intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
+            intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2),
+            intArrayOf(0, -1, 0, 0, 1, -1, 1, 0).roughen(2)
+        )
+        val pI = arrayOf(
+            intArrayOf(0, -2, 0, -1, 0, 0, 0, 1).roughen(2),
+            intArrayOf(-2, 0, -1, 0, 0, 0, 1, 0).roughen(2),
+            intArrayOf(0, -2, 0, -1, 0, 0, 0, 1).roughen(2),
+            intArrayOf(-2, 0, -1, 0, 0, 0, 1, 0).roughen(2)
+        )
+        val blocks = arrayOf(pJ, pL, pZ, pS, pT, pO, pI)
+
+        fun IntArray.roughen(x: Int): Array<IntArray> {
+            return Array(this.size / x) { z: Int -> IntArray(x) { i: Int -> this[i + z * x] } }
+        }
     }
 }
 
+
+
 class TetrisCore {
 
-    var blCords = intArrayOf(0, 5)
-    var locked = false
+    private var locked = false
+    private var block = BlockController()
     private var clearedLines: Int = 0
     private var clearedyCords = IntArray(4)
     private var coll = 0
     private var board = Array(20) { IntArray(10) }
     private var input = false
-    private var rot = 0
     private var curFrame = 0
-    private var curBlockNum: Int = newBlock()
-    private var blShape = Blocks.blocks[curBlockNum]
-    private var nextShape = newBlock()
 
     fun newTick(flip: Int, move: Int, down: Int = 0, freq: Int = 10) {
         input = false
@@ -73,75 +100,60 @@ class TetrisCore {
         var yCords = IntArray(4)
         if (coll < 8) {
             if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
-                if (!blCollission(blCords[0], blCords[1], nRot = abs((rot + sFlip) % 4))) {
+                if (!blCollission(block.cords[0], block.cords[1], nRot = abs((block.orientation + sFlip) % 4))) {
                     input = true
-                    rot = abs((rot + sFlip) % 4)
+                    block.orientation = abs((block.orientation + sFlip) % 4)
                 }
             }
             if ((abs(move) == 1) or ((abs(move) > 16) and ((abs(move) % 6) == 0))) {
-                if (!blCollission(blCords[0], blCords[1] + sMove)) {
+                if (!blCollission(block.cords[0], block.cords[1] + sMove)) {
                     input = true
-                    blCords[1] += sMove
+                    block.cords[1] += sMove
                 }
             }
-            if (!blCollission(blCords[0] + 1, blCords[1])) {
+            if (!blCollission(block.cords[0] + 1, block.cords[1])) {
                 if ((curFrame % (freq / (down + 1)) == 0)) {
-                    blCords[0] += 1
+                    block.cords[0] += 1
                 }
                 coll = 0
             }
         } else {
             solidify()
-            blShape = Blocks.blocks[nextShape]
-            curBlockNum = nextShape
-            nextShape = newBlock()
+            block.new()
             if (lockOut()) {
                 locked = true
                 return
             }
             yCords = checkForFullLines()
-            if (efflen(yCords) > 0) {
-                clearLine(yCords)
-            }
+            clearLine(yCords)
             coll = 0
         }
 
         coll += 1
         curFrame = (curFrame + 1) % 216000
-
     }
 
-    fun getCord(x: Int, y: Int): Int {
-        return board[y][x]
-    }
+    fun getCord(x: Int, y: Int) = board[y][x]
 
-    fun gotInput(): Boolean {
-        return input
-    }
+    fun getShape() = block.shape[block.orientation]
 
-    fun getShape(): Array<IntArray> {
-        return blShape[rot]
-    }
+    fun getNextShape() = block.nextShape[0]
 
-    fun getNextShape(): Int {
-        return nextShape
-    }
+    fun getNextShapeId() = block.nextShapeId
 
-    fun getCurBlockNum(): Int {
-        return curBlockNum
-    }
+    fun getShapeId() = block.shapeId
 
-    fun getClearedLines(): Int {
-        return clearedLines
-    }
+    fun getClearedLines() = clearedLines
 
-    fun getClearedyCords(): IntArray {
-        return clearedyCords
-    }
+    fun getClearedYCords() = clearedyCords
+
+    fun getCords() = block.cords
+
+    fun isLocked() = locked
 
     private fun solidify() {
-        for (bl in blShape[rot]) {
-            board[(bl[0] + blCords[0])][bl[1] + blCords[1]] = curBlockNum + 1
+        for (bl in block.block) {
+            board[ bl[0] ][ bl[1] ] = block.shapeId + 1
         }
     }
 
@@ -165,15 +177,10 @@ class TetrisCore {
         return yCords
     }
 
-    private fun newBlock(): Int {
-        blCords[0] = 0
-        blCords[1] = 5
-        rot = 0
-        return (0 until 7).random()
-    }
-
     private fun clearLine(yCords: IntArray) { //I want to move all the lines from the first Y-cord upwards, and not copy the remove lines
-
+        if (efflen(yCords) == 0) {
+            return
+        }
         var offset = 1
         clearedLines = efflen(yCords)
         clearedyCords = yCords.copyOf()
@@ -195,12 +202,12 @@ class TetrisCore {
 
     }
 
-    private fun blCollission(ycord: Int, xcord: Int, nRot: Int = rot): Boolean {
+    private fun blCollission(ycord: Int, xcord: Int, nRot: Int = block.orientation): Boolean {
 
-        for (s in blShape[nRot]) {
-            if (((ycord + s[0] < 0) or (ycord + s[0] > 19) or (xcord + s[1] < 0) or (xcord + s[1] > 9))) {
+        for (s in block.shape[nRot]) {
+            if (isOutOfBounds(xcord + s[1], ycord + s[0])) {
                 return true
-            } else if ((board[ycord + s[0]][xcord + s[1]] > 0)) {
+            } else if (isOccupied(xcord + s[1], ycord + s[0])) {
                 return true
             }
         }
@@ -208,8 +215,8 @@ class TetrisCore {
     }
 
     private fun lockOut(): Boolean {
-        for (block in blShape[0]) {
-            if (blCollission(blCords[0] + block[0], blCords[1] + block[1])) {
+        for (bl in block.block) {
+            if (blCollission(bl[0], bl[1])) {
                 return true
             }
         }
@@ -229,4 +236,8 @@ class TetrisCore {
         }
         return tally
     }
+
+    private fun isOutOfBounds(xcord: Int, ycord: Int) = ((ycord < 0) or (ycord > 19) or (xcord < 0) or (xcord > 9))
+
+    private fun isOccupied(xcord: Int, ycord: Int) = (board[ycord][xcord] > 0)
 }

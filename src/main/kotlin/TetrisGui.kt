@@ -111,7 +111,6 @@ class GameView (startingLevel: Int = 9): BaseView() {
     var core = TetrisCore()
     val startLevel = startingLevel
 
-
     override fun onDock() {
 
         var score = 0
@@ -276,7 +275,7 @@ class GameView (startingLevel: Int = 9): BaseView() {
                 myLines.text = lines.toString()
 
                 core.newTick(flip, move, down = down, freq = gravity[level])
-                if (core.locked) {
+                if (core.isLocked()) {
                     break
                 }
                 lines += core.getClearedLines()
@@ -322,7 +321,10 @@ class GameView (startingLevel: Int = 9): BaseView() {
             }
         }
         for (i in core.getShape()) {
-            tetrisLayer.setTileAt(Positions.create(core.blCords[1] + i[1], core.blCords[0] + i[0]), graphicalTiles[core.getCurBlockNum() + 1])
+            tetrisLayer.setTileAt(
+                Positions.create(core.getCords()[1] + i[1], core.getCords()[0] + i[0]),
+                graphicalTiles[core.getShapeId() + 1]
+            )
         }
     }
 
@@ -335,13 +337,12 @@ class GameView (startingLevel: Int = 9): BaseView() {
             }
         }
 
-        for (bl in Blocks.blocks[core.getNextShape()][0]) {
-            tetrisLayer.setTileAt(Positions.create(block0[0] + bl[1], block0[1] + bl[0]), graphicalTiles[core.getNextShape() + 1])
+        for (bl in core.getNextShape()){
+            tetrisLayer.setTileAt(
+                Positions.create(block0[0] + bl[1], block0[1] + bl[0]),
+                graphicalTiles[core.getNextShapeId() + 1]
+            )
         }
-    }
-
-    fun updateScore(score: Int, box: TextBox) {
-
     }
 }
 
