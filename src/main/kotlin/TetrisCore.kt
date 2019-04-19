@@ -80,13 +80,12 @@ class BlockController(inCords: Array<Int> = arrayOf(0, 5)) {
 }
 
 
-
 class TetrisCore {
 
     private var locked = false
     private var block = BlockController()
     private var clearedLines: Int = 0
-    private var clearedyCords = IntArray(4)
+    private var clearedYCords = IntArray(4)
     private var coll = 0
     private var board = Array(20) { IntArray(10) }
     private var input = false
@@ -99,24 +98,13 @@ class TetrisCore {
         this.clearedLines = 0
         var yCords = IntArray(4)
         if (coll < 8) {
-            if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
-                if (!blCollission(block.cords[0], block.cords[1], nRot = abs((block.orientation + sFlip) % 4))) {
-                    input = true
-                    block.orientation = abs((block.orientation + sFlip) % 4)
-                }
-            }
-            if ((abs(move) == 1) or ((abs(move) > 16) and ((abs(move) % 6) == 0))) {
-                if (!blCollission(block.cords[0], block.cords[1] + sMove)) {
-                    input = true
-                    block.cords[1] += sMove
-                }
-            }
-            if (!blCollission(block.cords[0] + 1, block.cords[1])) {
-                if ((curFrame % (freq / (down + 1)) == 0)) {
-                    block.cords[0] += 1
-                }
-                coll = 0
-            }
+
+            blockFlip(flip, sFlip)
+
+            blockMove(move, sMove)
+
+            blockFall(freq, down)
+
         } else {
             solidify()
             block.new()
@@ -133,6 +121,8 @@ class TetrisCore {
         curFrame = (curFrame + 1) % 216000
     }
 
+
+
     fun getCord(x: Int, y: Int) = board[y][x]
 
     fun getShape() = block.shape[block.orientation]
@@ -145,15 +135,46 @@ class TetrisCore {
 
     fun getClearedLines() = clearedLines
 
-    fun getClearedYCords() = clearedyCords
+    fun getClearedYCords() = clearedYCords
 
     fun getCords() = block.cords
 
     fun isLocked() = locked
 
+    private fun isOutOfBounds(xcord: Int, ycord: Int) = ((ycord < 0) or (ycord > 19) or (xcord < 0) or (xcord > 9))
+
+    private fun isOccupied(xcord: Int, ycord: Int) = (board[ycord][xcord] > 0)
+
     private fun solidify() {
         for (bl in block.block) {
-            board[ bl[0] ][ bl[1] ] = block.shapeId + 1
+            board[bl[0]][bl[1]] = block.shapeId + 1
+        }
+    }
+
+    private fun blockFlip(flip: Int, sFlip: Int) {
+        if ((abs(flip) == 1) or ((abs(flip) >= 16) and (((abs(flip) - 16) % 6) == 0))) {
+            if (!blCollission(block.cords[0], block.cords[1], nRot = abs((block.orientation + sFlip) % 4))) {
+                input = true
+                block.orientation = abs((block.orientation + sFlip) % 4)
+            }
+        }
+    }
+
+    private fun blockMove(move: Int, sMove: Int) {
+        if ((abs(move) == 1) or ((abs(move) > 16) and ((abs(move) % 6) == 0))) {
+            if (!blCollission(block.cords[0], block.cords[1] + sMove)) {
+                input = true
+                block.cords[1] += sMove
+            }
+        }
+    }
+
+    private fun blockFall(freq: Int, down: Int) {
+        if (!blCollission(block.cords[0] + 1, block.cords[1])) {
+            if ((curFrame % (freq / (down + 1)) == 0)) {
+                block.cords[0] += 1
+            }
+            coll = 0
         }
     }
 
@@ -183,7 +204,7 @@ class TetrisCore {
         }
         var offset = 1
         clearedLines = efflen(yCords)
-        clearedyCords = yCords.copyOf()
+        clearedYCords = yCords.copyOf()
 
         for (line in yCords[clearedLines - 1] downTo (0 + clearedLines)) {
             while (true) {
@@ -236,8 +257,4 @@ class TetrisCore {
         }
         return tally
     }
-
-    private fun isOutOfBounds(xcord: Int, ycord: Int) = ((ycord < 0) or (ycord > 19) or (xcord < 0) or (xcord > 9))
-
-    private fun isOccupied(xcord: Int, ycord: Int) = (board[ycord][xcord] > 0)
 }
