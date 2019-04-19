@@ -306,9 +306,9 @@ class GameView (startingLevel: Int = 9): BaseView() {
                 flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
                 Thread.sleep(1000 / 60)
             }
+        System.exit(0)
         }
     }
-
 
     fun paintBoard(tetrisLayer: Layer) {
         for (y in 0 until 20) {
@@ -345,7 +345,6 @@ class GameView (startingLevel: Int = 9): BaseView() {
         }
     }
 }
-
 
 fun main() {
     val application = SwingApplications.startApplication(GameConfig.buildAppConfig())

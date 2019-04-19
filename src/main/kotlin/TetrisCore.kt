@@ -8,24 +8,25 @@ class BlockController(inCords: Array<Int> = arrayOf(0, 5)) {
     var shapeId = (0 until 7).random()
     var nextShape = blocks[nextShapeId]
     var shape = blocks[shapeId]
-
     var block = Array(4) { outer ->
         Array(2) { inner ->
             shape[this.orientation][outer][inner] + this.cords[inner]
         }
     }
 
+    fun block() = Array(4) { outer ->
+        Array(2) { inner ->
+            this.shape[this.orientation][outer][inner] + this.cords[inner]
+        }
+    }
+
     fun new() {
+        this.cords = arrayOf(0, 5)
         this.orientation = 0
         this.shapeId = this.nextShapeId
         this.shape = blocks[this.shapeId]
         this.nextShapeId = (0 until 7).random()
         this.nextShape = blocks[this.nextShapeId]
-        this.block = Array(4) { outer ->
-            Array(2) { inner ->
-                this.shape[this.orientation][outer][inner] + this.cords[inner]
-            }
-        }
     }
 
     companion object Blocks {
@@ -118,6 +119,7 @@ class TetrisCore {
         }
 
         coll += 1
+        println(coll)
         curFrame = (curFrame + 1) % 216000
     }
 
@@ -146,7 +148,7 @@ class TetrisCore {
     private fun isOccupied(xcord: Int, ycord: Int) = (board[ycord][xcord] > 0)
 
     private fun solidify() {
-        for (bl in block.block) {
+        for (bl in block.block()) {
             board[bl[0]][bl[1]] = block.shapeId + 1
         }
     }
@@ -220,7 +222,6 @@ class TetrisCore {
         for (line in 0 until clearedLines) {
             board[line] = IntArray(10) { 0 }
         }
-
     }
 
     private fun blCollission(ycord: Int, xcord: Int, nRot: Int = block.orientation): Boolean {
@@ -236,10 +237,8 @@ class TetrisCore {
     }
 
     private fun lockOut(): Boolean {
-        for (bl in block.block) {
-            if (blCollission(bl[0], bl[1])) {
-                return true
-            }
+        if (blCollission(block.cords[0], block.cords[1])) {
+            return true
         }
         return false
     }
