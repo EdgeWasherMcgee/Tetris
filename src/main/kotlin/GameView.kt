@@ -1,8 +1,6 @@
-
 import org.hexworks.zircon.api.*
 import org.hexworks.zircon.api.component.ComponentAlignment
 import org.hexworks.zircon.api.component.Panel
-import org.hexworks.zircon.api.component.TextBox
 import org.hexworks.zircon.api.data.GraphicTile
 import org.hexworks.zircon.api.data.Position
 import org.hexworks.zircon.api.extensions.onKeyboardEvent
@@ -14,82 +12,7 @@ import org.hexworks.zircon.api.uievent.KeyCode
 import org.hexworks.zircon.api.uievent.KeyboardEventType
 import org.hexworks.zircon.api.uievent.Processed
 import org.hexworks.zircon.api.uievent.UIEventPhase
-import java.lang.Integer.max
 import kotlin.concurrent.thread
-
-//import TetrisCore
-
-object GameConfig {
-
-    val SIDEBAR_WIDTH = 8
-    val WINDOW_WIDTH = 60
-    val WINDOW_HEIGHT = 60
-
-    val WORLD_SIZE = Sizes.create(WINDOW_WIDTH, WINDOW_HEIGHT)
-
-    val TileNames = arrayOf(
-        "BlueSquare",
-        "LightBlue",
-        "Blue",
-        "PurpleSquare",
-        "Red",
-        "Purple",
-        "GreenSquare",
-        "Yellow",
-        "Green",
-        "CeriseSquare",
-        "Lime",
-        "Cerise",
-        "PinkSquare",
-        "LightPink",
-        "Pink",
-        "OrangeSquare",
-        "LightOrange",
-        "Orange"
-    )
-
-    fun buildAppConfig() = AppConfigs.newConfig()
-        .enableBetaFeatures()
-        .withSize(Sizes.create(WINDOW_WIDTH, WINDOW_HEIGHT))
-        .build()
-
-}
-
-
-class StartView : BaseView() {
-
-    override val theme = ColorThemes.arc()
-
-    override fun onDock() {
-
-        val header: TextBox = Components.textBox()
-            .withContentWidth("Press ENTER to continue".length)
-            .addHeader("        TETRIS         ")
-            .addParagraph("Press ENTER to continue")
-            .addNewLine()
-            .withAlignmentWithin(screen, ComponentAlignment.CENTER)
-            .build()
-
-        screen.applyColorTheme(theme)
-
-        screen.onKeyboardEvent(KeyboardEventType.KEY_RELEASED) {
-
-                event, _ ->
-
-            if (event.code == KeyCode.ENTER) {
-                replaceWith(GameView())
-                close()
-                Processed
-            }
-            Processed
-        }
-
-        screen.addComponent(header)
-
-    }
-
-}
-
 
 class GameView (startingLevel: Int = 9): BaseView() {
 
@@ -289,7 +212,7 @@ class GameView (startingLevel: Int = 9): BaseView() {
                     }
                 }
                 if (startLevel <= level) {
-                    if ((lines > (startLevel * 10 + 10)) or (lines > (max(100, (startLevel * 10 - 10))))) {
+                    if ((lines > (startLevel * 10 + 10)) or (lines > (Integer.max(100, (startLevel * 10 - 10))))) {
                         level++
                         linesAfterProgress = 0
                     }
@@ -306,7 +229,7 @@ class GameView (startingLevel: Int = 9): BaseView() {
                 flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
                 Thread.sleep(1000 / 60)
             }
-        System.exit(0)
+            replaceWith(LevelView())
         }
     }
 
@@ -344,9 +267,4 @@ class GameView (startingLevel: Int = 9): BaseView() {
             )
         }
     }
-}
-
-fun main() {
-    val application = SwingApplications.startApplication(GameConfig.buildAppConfig())
-    application.dock(StartView())
 }
