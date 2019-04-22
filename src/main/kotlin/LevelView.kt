@@ -26,7 +26,6 @@ class LevelView : BaseView() {
                 .build()
         }
 
-        buttons[0].requestFocus()
         screen.applyColorTheme(theme)
         buttons.forEach { screen.addComponent(it) }
 
@@ -62,9 +61,9 @@ class LevelView : BaseView() {
             buttons[curFocus].requestFocus()
             Processed
         }
+        buttons[0].requestFocus()
 
     }
-
 }
 
 fun main() {

@@ -229,7 +229,7 @@ class GameView (startingLevel: Int = 9): BaseView() {
                 flip += if (flip > 0) 1 else if (flip < 0) -1 else 0
                 Thread.sleep(1000 / 60)
             }
-            replaceWith(LevelView())
+            replaceWith(HighscoreView(score))
         }
     }
 
