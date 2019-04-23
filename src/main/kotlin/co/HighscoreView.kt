@@ -1,6 +1,8 @@
+package co
+
+import co.views.LevelView
 import org.hexworks.zircon.api.ColorThemes
 import org.hexworks.zircon.api.Components
-import org.hexworks.zircon.api.component.ColorTheme
 import org.hexworks.zircon.api.component.ComponentAlignment
 import org.hexworks.zircon.api.extensions.onKeyboardEvent
 import org.hexworks.zircon.api.graphics.BoxType
@@ -42,7 +44,7 @@ class HighscoreView(sc: Int) : BaseView() {
 //        box.addComponent(highscoreHeader)
 
         screen.onKeyboardEvent(KeyboardEventType.KEY_PRESSED) {
-            event, phase ->
+            event, _ ->
 
             if (event.code == KeyCode.ENTER) {
                 replaceWith(LevelView())

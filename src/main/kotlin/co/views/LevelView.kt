@@ -1,6 +1,7 @@
+package co.views
+
 import org.hexworks.zircon.api.ColorThemes
 import org.hexworks.zircon.api.Components
-import org.hexworks.zircon.api.SwingApplications
 import org.hexworks.zircon.api.extensions.onKeyboardEvent
 import org.hexworks.zircon.api.graphics.BoxType
 import org.hexworks.zircon.api.mvc.base.BaseView
@@ -21,7 +22,7 @@ class LevelView : BaseView() {
             Components.button()
                 .withSize(3, 1)
                 .withBoxType(BoxType.SINGLE)
-                .withPosition(22 + (it % 5) * 3, 27 + floor(it / 5.0).toInt())
+                .withPosition(22 + (it % 5) * 3,+ 27 + floor(it / 5.0).toInt())
                 .withText(it.toString())
                 .build()
         }
@@ -31,7 +32,7 @@ class LevelView : BaseView() {
 
         screen.onKeyboardEvent(KeyboardEventType.KEY_PRESSED) {
 
-                event, phase ->
+                event, _ ->
 
             buttons[curFocus].clearFocus()
 
@@ -64,9 +65,4 @@ class LevelView : BaseView() {
         buttons[0].requestFocus()
 
     }
-}
-
-fun main() {
-    val application = SwingApplications.startApplication(GameConfig.buildAppConfig())
-    application.dock(LevelView())
 }

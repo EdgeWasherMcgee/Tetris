@@ -1,3 +1,8 @@
+package co.views
+
+import co.GameConfig
+import co.HighscoreView
+import co.TetrisCore
 import org.hexworks.zircon.api.*
 import org.hexworks.zircon.api.component.ComponentAlignment
 import org.hexworks.zircon.api.component.Panel
@@ -21,7 +26,7 @@ class GameView (startingLevel: Int = 9): BaseView() {
     private val graphicalTileset = GraphicalTilesetResource(
         width = 32,
         height = 32,
-        path = javaClass.getResource("/graphic_tilesets/tetris_32x32.zip").path
+        path = javaClass.getResource("graphic_tilesets/tetris_32x32.zip").path
     )
 
     private val graphicalTiles = Array<GraphicTile>(18) { i ->

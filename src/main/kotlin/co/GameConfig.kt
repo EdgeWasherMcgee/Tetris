@@ -1,3 +1,5 @@
+package co
+
 import org.hexworks.zircon.api.AppConfigs
 import org.hexworks.zircon.api.Sizes
 

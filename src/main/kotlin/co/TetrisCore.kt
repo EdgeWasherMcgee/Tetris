@@ -1,3 +1,5 @@
+package co
+
 import kotlin.math.abs
 
 class BlockController(inCords: Array<Int> = arrayOf(0, 5)) {
@@ -72,7 +74,15 @@ class BlockController(inCords: Array<Int> = arrayOf(0, 5)) {
             intArrayOf(0, -2, 0, -1, 0, 0, 0, 1).roughen(2),
             intArrayOf(-2, 0, -1, 0, 0, 0, 1, 0).roughen(2)
         )
-        val blocks = arrayOf(pJ, pL, pZ, pS, pT, pO, pI)
+        val blocks = arrayOf(
+            pJ,
+            pL,
+            pZ,
+            pS,
+            pT,
+            pO,
+            pI
+        )
 
         fun IntArray.roughen(x: Int): Array<IntArray> {
             return Array(this.size / x) { z: Int -> IntArray(x) { i: Int -> this[i + z * x] } }
